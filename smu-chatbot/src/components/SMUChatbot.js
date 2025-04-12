@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import VectorDatabase from './VectorDatabase';
+import './SMUChatbot.css';
+import { smuData } from './smuData';
 
 const SMUChatbot = () => {
   const [messages, setMessages] = useState([
@@ -18,12 +19,6 @@ const SMUChatbot = () => {
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
-  const vectorDb = useRef(new VectorDatabase());
-
-  // Initialize vector database on component mount
-  useEffect(() => {
-    vectorDb.current.initialize();
-  }, []);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -34,24 +29,33 @@ const SMUChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Get relevant information from vector database
-  const getRelevantInfo = async (query) => {
-    try {
-      const results = await vectorDb.current.search(query);
-      return results;
-    } catch (error) {
-      console.error("Error searching vector database:", error);
-      return [];
-    }
+  // Find relevant information from data
+  const findRelevantInfo = (query) => {
+    const lowerCaseQuery = query.toLowerCase();
+    return smuData.filter(item => {
+      // Check if query contains category
+      if (item.category.toLowerCase().includes(lowerCaseQuery)) return true;
+      
+      // Check if query contains any tags
+      if (item.tags.some(tag => lowerCaseQuery.includes(tag.toLowerCase()))) return true;
+      
+      // Check if item text contains query words (simple keyword search)
+      const queryWords = lowerCaseQuery.split(' ')
+        .filter(word => word.length > 3); // Only use meaningful words
+      
+      return queryWords.some(word => 
+        item.text.toLowerCase().includes(word)
+      );
+    }).slice(0, 3); // Return top 3 matches
   };
 
-  // Process query and format response with vector database results
-  const processQueryWithVectorDb = async (userMessage) => {
+  // Get response based on user input
+  const getBotResponse = (userMessage) => {
     const lowerCaseMsg = userMessage.toLowerCase();
     let baseResponse = {};
     
-    // Get relevant information from vector database
-    const relevantInfo = await getRelevantInfo(userMessage);
+    // Get relevant information from data
+    const relevantInfo = findRelevantInfo(userMessage);
     
     if (lowerCaseMsg.includes('organization') || lowerCaseMsg.includes('club')) {
       baseResponse = {
@@ -78,7 +82,7 @@ const SMUChatbot = () => {
         text: "SMU has a vibrant Greek life with multiple councils including IFC, Panhellenic, NPHC, and MGC. Recruitment typically happens at the beginning of each semester.",
         options: ["Fraternity recruitment", "Sorority recruitment", "Multicultural Greek options"]
       };
-    } else if (lowerCaseMsg.includes('academic') && messages.some(m => m.text?.includes('organization'))) {
+    } else if (lowerCaseMsg.includes('academic')) {
       baseResponse = {
         text: "SMU has academic organizations across all disciplines! Many are affiliated with specific majors or colleges. Which school are you in?",
         options: ["Cox School of Business", "Dedman College", "Meadows School of the Arts", "Lyle School of Engineering", "Simmons School of Education"]
@@ -90,7 +94,7 @@ const SMUChatbot = () => {
       };
     }
     
-    // Enhance response with vector database results if available
+    // Enhance response with relevant information if available
     if (relevantInfo.length > 0) {
       // Add the most relevant information to the response
       baseResponse.text = baseResponse.text + "\n\n" + relevantInfo[0].text;
@@ -109,7 +113,7 @@ const SMUChatbot = () => {
     return baseResponse;
   };
 
-  const handleSend = async () => {
+  const handleSend = () => {
     if (input.trim() === '') return;
     
     // Add user message
@@ -117,106 +121,81 @@ const SMUChatbot = () => {
     setInput('');
     setLoading(true);
     
-    try {
-      // Use vector database to enhance response
-      const response = await processQueryWithVectorDb(input);
-      
+    // Simulate API delay
+    setTimeout(() => {
+      const response = getBotResponse(input);
       setMessages(prev => [...prev, { 
         text: response.text, 
         sender: 'bot',
         options: response.options
       }]);
-    } catch (error) {
-      console.error("Error processing query:", error);
-      setMessages(prev => [...prev, { 
-        text: "I'm having trouble accessing my knowledge base right now. Can you try asking something else?", 
-        sender: 'bot',
-        options: ["Student Organizations", "Leadership Programs", "Campus Events"]
-      }]);
-    } finally {
       setLoading(false);
-    }
+    }, 600);
   };
 
-  const handleOptionClick = async (option) => {
+  const handleOptionClick = (option) => {
     // Add user selection as a message
     setMessages([...messages, { text: option, sender: 'user' }]);
     setLoading(true);
     
-    try {
-      // Use vector database to enhance response
-      const response = await processQueryWithVectorDb(option);
-      
+    // Simulate API delay  
+    setTimeout(() => {
+      const response = getBotResponse(option);
       setMessages(prev => [...prev, { 
         text: response.text, 
         sender: 'bot',
         options: response.options
       }]);
-    } catch (error) {
-      console.error("Error processing option:", error);
-      setMessages(prev => [...prev, { 
-        text: "I'm having trouble accessing my knowledge base right now. Can you try selecting something else?", 
-        sender: 'bot',
-        options: ["Student Organizations", "Leadership Programs", "Campus Events"]
-      }]);
-    } finally {
       setLoading(false);
-    }
+    }, 600);
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100">
+    <div className="chatbot-container">
       {/* Header */}
-      <header className="bg-smu-blue text-white p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <div 
-            className="h-12 w-12 mr-3 rounded-full bg-white p-1 flex items-center justify-center"
-          >
-            {/* Replace with actual Peruna image when available */}
-            <span className="text-smu-blue font-bold">P</span>
+      <header className="chatbot-header">
+        <div className="header-left">
+          <div className="logo-container">
+            <span className="logo-text">P</span>
           </div>
           <div>
-            <h1 className="text-xl font-bold">SMU Student Involvement</h1>
-            <p className="text-sm">Find your place at SMU</p>
+            <h1 className="header-title">SMU Student Involvement</h1>
+            <p className="header-subtitle">Find your place at SMU</p>
           </div>
         </div>
-        <div className="flex space-x-4">
-          <a href="https://www.smu.edu/StudentAffairs" target="_blank" rel="noreferrer" className="text-white hover:text-red-300">
+        <div className="header-links">
+          <a href="https://www.smu.edu/StudentAffairs" target="_blank" rel="noreferrer">
             Student Affairs
           </a>
-          <a href="https://www.smu.edu/360" target="_blank" rel="noreferrer" className="text-white hover:text-red-300">
+          <a href="https://www.smu.edu/360" target="_blank" rel="noreferrer">
             SMU360
           </a>
         </div>
       </header>
 
-      {/* Chat container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Chat messages */}
+      <div className="messages-container">
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-3/4 rounded-lg p-3 ${
-              message.sender === 'user' 
-              ? 'bg-smu-blue text-white'
-              : 'bg-white border border-gray-300'
-            }`}>
+          <div key={index} className={`message ${message.sender}`}>
+            <div className="message-bubble">
               {message.sender === 'bot' && (
-                <div className="flex items-center mb-2">
-                  <div className="h-8 w-8 bg-smu-red rounded-full flex items-center justify-center mr-2">
-                    <span className="text-white text-xs font-bold">SMU</span>
+                <div className="bot-header">
+                  <div className="bot-avatar">
+                    <span>SMU</span>
                   </div>
-                  <span className="font-bold">Peruna Bot</span>
+                  <span className="bot-name">Peruna Bot</span>
                 </div>
               )}
-              <p className="whitespace-pre-line">{message.text}</p>
+              <p className="message-text">{message.text}</p>
               
               {/* Quick reply options */}
               {message.sender === 'bot' && message.options && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="options-container">
                   {message.options.map((option, i) => (
                     <button 
                       key={i}
                       onClick={() => handleOptionClick(option)}
-                      className="bg-gray-200 hover:bg-gray-300 text-sm rounded-full px-3 py-1"
+                      className="option-button"
                     >
                       {option}
                     </button>
@@ -228,13 +207,11 @@ const SMUChatbot = () => {
         ))}
         
         {loading && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-gray-300 rounded-lg p-4">
-              <div className="flex space-x-2">
-                <div className="h-3 w-3 bg-gray-400 rounded-full animate-bounce"></div>
-                <div className="h-3 w-3 bg-gray-400 rounded-full animate-bounce delay-75"></div>
-                <div className="h-3 w-3 bg-gray-400 rounded-full animate-bounce delay-150"></div>
-              </div>
+          <div className="message bot">
+            <div className="message-bubble typing-indicator">
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
+              <div className="typing-dot"></div>
             </div>
           </div>
         )}
@@ -243,30 +220,31 @@ const SMUChatbot = () => {
       </div>
 
       {/* Input area */}
-      <div className="border-t border-gray-300 p-4 bg-white">
-        <div className="flex items-center">
+      <div className="input-container">
+        <div className="input-wrapper">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Ask about involvement opportunities..."
-            className="flex-1 border border-gray-300 rounded-l-lg p-3 focus:outline-none focus:ring-2 focus:ring-smu-blue"
+            className="chat-input"
           />
           <button
             onClick={handleSend}
-            className="bg-smu-red hover:bg-red-800 text-white rounded-r-lg p-3"
+            className="send-button"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
           </button>
         </div>
         
         {/* Footer */}
-        <div className="mt-3 text-center text-xs text-gray-500">
+        <div className="footer">
           <p>© Southern Methodist University • Dallas TX 75205</p>
-          <p className="mt-1">For assistance, contact the Student Involvement Office</p>
+          <p>For assistance, contact the Student Involvement Office</p>
         </div>
       </div>
     </div>

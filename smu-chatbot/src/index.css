@@ -11,3 +11,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* SMU Colors */
+:root {
+  --smu-blue: #0033A0;
+  --smu-red: #C8102E;
+}
