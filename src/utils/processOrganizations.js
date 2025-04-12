@@ -14,7 +14,7 @@ const pinecone = new Pinecone({
 });
 
 // Get a reference to your Pinecone index
-const index = pinecone.Index('smu-involvement');
+const index = pinecone.Index('smu-involvement-data');
 
 // Function to read and parse the CSV file
 function readCSV(filePath) {
