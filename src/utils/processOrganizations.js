@@ -5,12 +5,12 @@ const { OpenAI } = require('openai');
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY // Make sure to set this environment variable
+  apiKey:'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' // Make sure to set this environment variable
 });
 
 // Initialize the Pinecone client
 const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY // Make sure to set this environment variable
+  apiKey:'pcsk_2Zrbzg_55tcURFXDveg6aeGziiviJdRz6FZ9o5kqxJ3gxxscKuBkciSemRXjfKbuXrPPTP' // Make sure to set this environment variable
 });
 
 // Get a reference to your Pinecone index
