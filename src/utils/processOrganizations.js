@@ -1,7 +1,7 @@
-import Papa from 'papaparse';
-import fs from 'fs';
-import { Pinecone } from '@pinecone-database/pinecone';
-import { OpenAI } from 'openai';
+const Papa = require('papaparse');
+const fs = require('fs');
+const { Pinecone } = require('@pinecone-database/pinecone');
+const { OpenAI } = require('openai');
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
