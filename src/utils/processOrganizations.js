@@ -5,12 +5,12 @@ const { OpenAI } = require('openai');
 
 // Initialize the OpenAI client
 const openai = new OpenAI({
-  apiKey:'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' // Make sure to set this environment variable
+  apiKey: process.env.REACT_APP_OPENAI_API_KEY
 });
 
 // Initialize the Pinecone client
 const pinecone = new Pinecone({
-  apiKey:'pcsk_2Zrbzg_55tcURFXDveg6aeGziiviJdRz6FZ9o5kqxJ3gxxscKuBkciSemRXjfKbuXrPPTP' // Make sure to set this environment variable
+  apiKey: process.env.REACT_APP_PINECONE_API_KEY
 });
 
 // Get a reference to your Pinecone index
@@ -146,15 +146,16 @@ async function prepareVectors(transformedData) {
       id: item.id,
       values: embedding,
       metadata: {
-        title: item.title,
-        text: item.text,
-        category: item.category,
-        tags: item.tags,
-        duration: item.duration,
-        recruitmentPeriod: item.recruitmentPeriod,
-        contactName: item.contactName,
-        contactEmail: item.contactEmail,
-        groupType: item.groupType
+        title: item.title || '',
+        text: item.text || '',
+        category: item.category || '',
+        tags: item.tags || [],
+        // Only include non-null values for these fields
+        ...(item.duration ? { duration: item.duration } : {}),
+        ...(item.recruitmentPeriod ? { recruitmentPeriod: item.recruitmentPeriod } : {}),
+        ...(item.contactName ? { contactName: item.contactName } : {}),
+        ...(item.contactEmail ? { contactEmail: item.contactEmail } : {}),
+        ...(item.groupType ? { groupType: item.groupType } : {})
       }
     });
   }
@@ -188,7 +189,7 @@ async function processAndUpload() {
     
     // 1. Read and parse the CSV file
     console.log('Reading CSV file...');
-    const rawData = await readCSV('./src/utils/smuorganizations.csv');
+    const rawData = await readCSV('/Users/bonniepickett/smu-chatbot/src/utils/smuorganizations.csv');
     console.log(`CSV file read successfully, found ${rawData.length} rows.`);
     
     // 2. Transform the data

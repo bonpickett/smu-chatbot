@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './SMUChatbot.css';
 import { smuData } from './smuData';
+import PineconeService from '../services/PineconeService';
 
 const SMUChatbot = () => {
+  // Existing state variables
   const [messages, setMessages] = useState([
     {
       text: "Hi Mustang! I'm Peruna Bot. I can help you find involvement and leadership opportunities at SMU. What are you interested in?",
@@ -18,6 +20,10 @@ const SMUChatbot = () => {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // Add Pinecone service
+  const pineconeService = useRef(new PineconeService());
+
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when messages change
@@ -29,126 +35,216 @@ const SMUChatbot = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Find relevant information from data
-  const findRelevantInfo = (query) => {
-    const lowerCaseQuery = query.toLowerCase();
-    return smuData.filter(item => {
-      // Check if query contains category
-      if (item.category.toLowerCase().includes(lowerCaseQuery)) return true;
-      
-      // Check if query contains any tags
-      if (item.tags.some(tag => lowerCaseQuery.includes(tag.toLowerCase()))) return true;
-      
-      // Check if item text contains query words (simple keyword search)
-      const queryWords = lowerCaseQuery.split(' ')
-        .filter(word => word.length > 3); // Only use meaningful words
-      
-      return queryWords.some(word => 
-        item.text.toLowerCase().includes(word)
-      );
-    }).slice(0, 3); // Return top 3 matches
-  };
+// Process user query with Pinecone
+const processQueryWithPinecone = async (userMessage) => {
+  const lowerCaseMsg = userMessage.toLowerCase();
+  let baseResponse = {};
+  
+  // Get relevant information from Pinecone
+  const relevantOrgs = await pineconeService.current.search(userMessage);
+  
+  // Default response based on query type
+  if (lowerCaseMsg.includes('organization') || lowerCaseMsg.includes('club')) {
+    baseResponse = {
+      text: "SMU has over 200 student organizations! Here are some that might interest you:",
+      options: ["Show more organizations", "Filter by category", "How to join"]
+    };
+  } else if (lowerCaseMsg.includes('greek') || lowerCaseMsg.includes('fraternity') || lowerCaseMsg.includes('sorority')) {
+    baseResponse = {
+      text: "SMU has a vibrant Greek life with several fraternities and sororities. Here are some relevant organizations:",
+      options: ["Fraternities", "Sororities", "Rush information"]
+    };
+  } else {
+    baseResponse = {
+      text: "I found some SMU organizations that might interest you:",
+      options: ["Tell me more", "Show different options", "How to get involved"]
+    };
+  }
+  
+  // Enhance response with organization information from Pinecone
+  if (relevantOrgs.length > 0) {
+    // Format organization information
+    let orgInfo = '';
+    
+    relevantOrgs.forEach((org, index) => {
+      orgInfo += `\n\n${index + 1}. ${org.title}\n`;
+      orgInfo += `${org.text.substring(0, 150)}${org.text.length > 150 ? '...' : ''}`;
+    });
+    
+    baseResponse.text += orgInfo;
+    
+    // Add organization-specific options
+    const additionalOptions = relevantOrgs.slice(0, 2).map(org => 
+      `More about: ${org.title.substring(0, 25)}${org.title.length > 25 ? '...' : ''}`
+    );
+    
+    baseResponse.options = [...additionalOptions, ...baseResponse.options.slice(0, 1)];
+  }
+  
+  return baseResponse;
+};
 
-  // Get response based on user input
-  const getBotResponse = (userMessage) => {
-    const lowerCaseMsg = userMessage.toLowerCase();
-    let baseResponse = {};
+// Handle sending a message
+const handleSend = async () => {
+  if (input.trim() === '') return;
+  
+  // Add user message
+  setMessages([...messages, { text: input, sender: 'user' }]);
+  setInput('');
+  setLoading(true);
+  
+  try {
+    // Get response using Pinecone
+    const response = await processQueryWithPinecone(input);
     
-    // Get relevant information from data
-    const relevantInfo = findRelevantInfo(userMessage);
-    
-    if (lowerCaseMsg.includes('organization') || lowerCaseMsg.includes('club')) {
-      baseResponse = {
-        text: "SMU has over 200 student organizations! You can explore them all on SMU Connect. What type of organization interests you?",
-        options: ["Academic", "Cultural", "Service", "Religious", "Special Interest"]
-      };
-    } else if (lowerCaseMsg.includes('leadership')) {
-      baseResponse = {
-        text: "Great! SMU offers many leadership development opportunities including the Crain Leadership Summit, Emerging Leaders, and the Caswell Leadership Program.",
-        options: ["Tell me more about Crain", "What is Emerging Leaders?", "Caswell Leadership details", "Other leadership options"]
-      };
-    } else if (lowerCaseMsg.includes('event')) {
-      baseResponse = {
-        text: "Check out upcoming campus events on the SMU360 portal or the Student Affairs calendar. There's always something happening on campus!",
-        options: ["This week's events", "Major annual events", "How to submit an event"]
-      };
-    } else if (lowerCaseMsg.includes('volunteer') || lowerCaseMsg.includes('service')) {
-      baseResponse = {
-        text: "The Office of Community Engagement has great volunteer opportunities! You can also check out service-focused student organizations like Mustang Heroes.",
-        options: ["Weekly service projects", "Alternative Breaks", "Community Partners"]
-      };
-    } else if (lowerCaseMsg.includes('greek') || lowerCaseMsg.includes('fraternity') || lowerCaseMsg.includes('sorority')) {
-      baseResponse = {
-        text: "SMU has a vibrant Greek life with multiple councils including IFC, Panhellenic, NPHC, and MGC. Recruitment typically happens at the beginning of each semester.",
-        options: ["Fraternity recruitment", "Sorority recruitment", "Multicultural Greek options"]
-      };
-    } else if (lowerCaseMsg.includes('academic')) {
-      baseResponse = {
-        text: "SMU has academic organizations across all disciplines! Many are affiliated with specific majors or colleges. Which school are you in?",
-        options: ["Cox School of Business", "Dedman College", "Meadows School of the Arts", "Lyle School of Engineering", "Simmons School of Education"]
-      };
-    } else {
-      baseResponse = {
-        text: "I'm here to help you find involvement opportunities at SMU! Would you like to know about student organizations, leadership programs, events, or something else?",
-        options: ["Student Organizations", "Leadership Programs", "Campus Events", "Volunteer Opportunities", "Greek Life"]
-      };
-    }
-    
-    // Enhance response with relevant information if available
-    if (relevantInfo.length > 0) {
-      // Add the most relevant information to the response
-      baseResponse.text = baseResponse.text + "\n\n" + relevantInfo[0].text;
+    setMessages(prev => [...prev, { 
+      text: response.text, 
+      sender: 'bot',
+      options: response.options
+    }]);
+  } catch (error) {
+    console.error('Error getting bot response:', error);
+    // Fallback response
+    setMessages(prev => [...prev, { 
+      text: "I'm having trouble accessing my knowledge base right now. Can you try asking something else?", 
+      sender: 'bot',
+      options: ["Student Organizations", "Leadership Programs", "Campus Events"]
+    }]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // Handle clicking an option
+const handleOptionClick = async (option) => {
+   // Add user selection as a message
+   setMessages([...messages, { text: option, sender: 'user' }]);
+   setLoading(true);
+  
+   try {
+    // Handle "More about:" options
+    if (option.startsWith('More about:')) {
+      const orgTitle = option.replace('More about:', '').trim();
       
-      // Add additional options based on relevant info
-      if (relevantInfo.length > 1) {
-        const additionalOptions = relevantInfo.slice(1).map(info => {
-          const firstSentence = info.text.split('.')[0] + '.';
-          return firstSentence.substring(0, 50) + (firstSentence.length > 50 ? '...' : '');
-        });
+      // Search for this specific organization
+      const specificQuery = `"${orgTitle}"`;
+      const orgDetails = await pineconeService.current.search(specificQuery, 1);
+      
+      if (orgDetails.length > 0) {
+        const org = orgDetails[0];
         
-        baseResponse.options = [...baseResponse.options.slice(0, 3), ...additionalOptions];
+        // Format detailed organization information
+        const detailedText = `
+${org.title}
+
+${org.text}
+
+${org.groupType ? `Type: ${org.groupType}` : ''}
+${org.duration ? `Duration: ${org.duration}` : ''}
+${org.recruitmentPeriod ? `Recruitment: ${org.recruitmentPeriod}` : ''}
+${org.contactName ? `Contact: ${org.contactName}` : ''}
+${org.contactEmail ? `Email: ${org.contactEmail}` : ''}
+        `.trim();
+        
+        setMessages(prev => [...prev, { 
+          text: detailedText, 
+          sender: 'bot',
+          options: ["Show similar organizations", "How to join", "Back to all organizations"]
+        }]);
+      } else {
+        // Fall back to regular query if organization not found
+        const response = await processQueryWithPinecone(option);
+        setMessages(prev => [...prev, { 
+          text: response.text, 
+          sender: 'bot',
+          options: response.options
+        }]);
+      }
+    } else if (option.includes('orgs') || option.includes('clubs') || 
+             option.includes('Greek life') || option.includes('life')) {
+      // Extract category name
+      let category = '';
+      if (option.includes('Academic')) category = 'academic';
+      else if (option.includes('Cultural')) category = 'cultural';
+      else if (option.includes('Service')) category = 'service';
+      else if (option.includes('Greek')) category = 'greek';
+      else if (option.includes('Sports')) category = 'sports';
+      
+      if (category) {
+        const response = await getOrganizationsByCategory(category);
+        setMessages(prev => [...prev, { 
+          text: response.text, 
+          sender: 'bot',
+          options: response.options
+        }]);
+      } else {
+        // Fall back to regular processing
+        const response = await processQueryWithPinecone(option);
+        setMessages(prev => [...prev, { 
+          text: response.text, 
+          sender: 'bot',
+          options: response.options
+        }]);
       }
     }
-    
-    return baseResponse;
-  };
-
-  const handleSend = () => {
-    if (input.trim() === '') return;
-    
-    // Add user message
-    setMessages([...messages, { text: input, sender: 'user' }]);
-    setInput('');
-    setLoading(true);
-    
-    // Simulate API delay
-    setTimeout(() => {
-      const response = getBotResponse(input);
+    // Handle other options
+    else {
+      const response = await processQueryWithPinecone(option);
       setMessages(prev => [...prev, { 
         text: response.text, 
         sender: 'bot',
         options: response.options
       }]);
-      setLoading(false);
-    }, 600);
-  };
+    }
+  } catch (error) {
+    console.error('Error processing option:', error);
+    // Fallback response
+    setMessages(prev => [...prev, { 
+      text: "I'm having trouble retrieving that information right now. Can you try something else?", 
+      sender: 'bot',
+      options: ["Student Organizations", "Leadership Programs", "Campus Events"]
+    }]);
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleOptionClick = (option) => {
-    // Add user selection as a message
-    setMessages([...messages, { text: option, sender: 'user' }]);
-    setLoading(true);
+// Add this function to handle category filtering
+const getOrganizationsByCategory = async (category) => {
+  try {
+    // Create a category-specific query
+    const categoryQuery = `${category} organizations at SMU`;
+    const orgs = await pineconeService.current.search(categoryQuery, 5);
     
-    // Simulate API delay  
-    setTimeout(() => {
-      const response = getBotResponse(option);
-      setMessages(prev => [...prev, { 
-        text: response.text, 
-        sender: 'bot',
-        options: response.options
-      }]);
-      setLoading(false);
-    }, 600);
-  };
+    if (orgs.length > 0) {
+      let responseText = `Here are some ${category} organizations at SMU:\n\n`;
+      
+      orgs.forEach((org, index) => {
+        responseText += `${index + 1}. ${org.title}\n`;
+        responseText += `${org.text.substring(0, 150)}${org.text.length > 150 ? '...' : ''}\n\n`;
+      });
+      
+      const options = orgs.slice(0, 3).map(org => `More about: ${org.title.substring(0, 25)}...`);
+      options.push("See other categories", "Back to main menu");
+      
+      return {
+        text: responseText,
+        options: options
+      };
+    } else {
+      return {
+        text: `I couldn't find any ${category} organizations. Would you like to see other categories?`,
+        options: ["Academic orgs", "Cultural orgs", "Service orgs", "Greek life", "Sports clubs"]
+      };
+    }
+  } catch (error) {
+    console.error('Error getting organizations by category:', error);
+    return {
+      text: "I'm having trouble retrieving organization information. Let's try something else.",
+      options: ["Student Organizations", "Leadership Programs", "Campus Events"]
+    };
+  }
+};
 
   return (
     <div className="chatbot-container">
