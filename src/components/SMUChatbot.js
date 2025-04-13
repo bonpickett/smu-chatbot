@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './SMUChatbot.css';
-import { smuData } from './smuData';
+//import { smuData } from './smuData';
 import PineconeService from '../services/PineconeService';
 
 const SMUChatbot = () => {
