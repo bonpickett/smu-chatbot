@@ -265,9 +265,9 @@ const getOrganizationsByCategory = async (category) => {
       <header className="bg-smu-blue text-white p-4 flex items-center justify-between">
         <div className="flex items-center">
           <img 
-            src="/peruna.png" 
+            src="/peruna-small.png" 
             alt="Peruna mascot" 
-            className="h-10 w-10 mr-3 rounded-full bg-white p-1 object-contain"
+            className="h-12 w-12 mr-3 rounded-full bg-white p-1"
           />
           <div>
             <h1 className="header-title">SMU Student Involvement</h1>
@@ -293,9 +293,9 @@ const getOrganizationsByCategory = async (category) => {
                 <div className="flex items-center mb-2">
                   {/* Replace this div with an image */}
                   <img 
-                    src="/peruna.png" 
+                    src="/peruna-tiny.png" 
                     alt="Peruna mascot" 
-                    className="h-6 w-6 mr-2 rounded-full object-contain"
+                    className="h-8 w-8 mr-2 rounded-full"
                   />
                   <span className="font-bold">Peruna Bot</span>
                 </div>
