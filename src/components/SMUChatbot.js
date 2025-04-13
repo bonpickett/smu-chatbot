@@ -267,7 +267,7 @@ const getOrganizationsByCategory = async (category) => {
           <img 
             src="/peruna.png" 
             alt="Peruna mascot" 
-            className="h-12 w-12 mr-3 rounded-full bg-white p-1"
+            className="h-10 w-10 mr-3 rounded-full bg-white p-1 object-contain"
           />
           <div>
             <h1 className="header-title">SMU Student Involvement</h1>
@@ -295,7 +295,7 @@ const getOrganizationsByCategory = async (category) => {
                   <img 
                     src="/peruna.png" 
                     alt="Peruna mascot" 
-                    className="h-8 w-8 mr-2 rounded-full"
+                    className="h-6 w-6 mr-2 rounded-full object-contain"
                   />
                   <span className="font-bold">Peruna Bot</span>
                 </div>
