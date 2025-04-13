@@ -188,7 +188,7 @@ async function processAndUpload() {
     
     // 1. Read and parse the CSV file
     console.log('Reading CSV file...');
-    const rawData = await readCSV('./smuorganizations.csv');
+    const rawData = await readCSV('./src/utils/smuorganizations.csv');
     console.log(`CSV file read successfully, found ${rawData.length} rows.`);
     
     // 2. Transform the data
