@@ -41,7 +41,9 @@ const processQueryWithPinecone = async (userMessage) => {
   let baseResponse = {};
   
   // Get relevant information from Pinecone
+  console.log("Querying Pinecone for:", userMessage);
   const relevantOrgs = await pineconeService.current.search(userMessage);
+  console.log("Returned organizations:", relevantOrgs);
   
   // Default response based on query type
   if (lowerCaseMsg.includes('organization') || lowerCaseMsg.includes('club')) {
@@ -62,25 +64,36 @@ const processQueryWithPinecone = async (userMessage) => {
   }
   
   // Enhance response with organization information from Pinecone
-  if (relevantOrgs.length > 0) {
+  if (relevantOrgs && relevantOrgs.length > 0) {
     // Format organization information
     let orgInfo = '';
     
     relevantOrgs.forEach((org, index) => {
-      orgInfo += `\n\n${index + 1}. ${org.title}\n`;
-      orgInfo += `${org.text.substring(0, 150)}${org.text.length > 150 ? '...' : ''}`;
+      if (!org) return; // Skip if org is undefined
+      
+      const title = org.title || 'Organization';
+      const text = org.text || 'No description available';
+      
+      orgInfo += `\n\n${index + 1}. ${title}\n`;
+      orgInfo += `${text.substring(0, 150)}${text.length > 150 ? '...' : ''}`;
     });
     
-    baseResponse.text += orgInfo;
+    // Only add org info if we have some
+    if (orgInfo.trim()) {
+      baseResponse.text += orgInfo;
+    }
     
     // Add organization-specific options
     const additionalOptions = relevantOrgs.slice(0, 2).map(org => 
-      `More about: ${org.title.substring(0, 25)}${org.title.length > 25 ? '...' : ''}`
+      `More about: ${org.title?.substring(0, 25) || ''}${org.title?.length > 25 ? '...' : ''}`
     );
     
     baseResponse.options = [...additionalOptions, ...baseResponse.options.slice(0, 1)];
+  } else {
+    console.log("No organizations found to add to response");
   }
   
+  console.log("Final response:", baseResponse);
   return baseResponse;
 };
 
