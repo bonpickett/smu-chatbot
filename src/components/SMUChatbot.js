@@ -262,11 +262,13 @@ const getOrganizationsByCategory = async (category) => {
   return (
     <div className="chatbot-container">
       {/* Header */}
-      <header className="chatbot-header">
-        <div className="header-left">
-          <div className="logo-container">
-            <span className="logo-text">P</span>
-          </div>
+      <header className="bg-smu-blue text-white p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <img 
+            src="/peruna.png" 
+            alt="Peruna mascot" 
+            className="h-12 w-12 mr-3 rounded-full bg-white p-1"
+          />
           <div>
             <h1 className="header-title">SMU Student Involvement</h1>
             <p className="header-subtitle">Find your place at SMU</p>
@@ -288,11 +290,14 @@ const getOrganizationsByCategory = async (category) => {
           <div key={index} className={`message ${message.sender}`}>
             <div className="message-bubble">
               {message.sender === 'bot' && (
-                <div className="bot-header">
-                  <div className="bot-avatar">
-                    <span>SMU</span>
-                  </div>
-                  <span className="bot-name">Peruna Bot</span>
+                <div className="flex items-center mb-2">
+                  {/* Replace this div with an image */}
+                  <img 
+                    src="/peruna.png" 
+                    alt="Peruna mascot" 
+                    className="h-8 w-8 mr-2 rounded-full"
+                  />
+                  <span className="font-bold">Peruna Bot</span>
                 </div>
               )}
               <p className="message-text">{message.text}</p>
