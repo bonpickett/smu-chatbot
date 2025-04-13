@@ -287,39 +287,38 @@ return (
 
     {/* Chat container */}
     <div className="messages-container">
-      {messages.map((message, index) => (
-        <div key={index} className={`message ${message.sender}`}>
-          <div className="message-bubble">
-            {message.sender === 'bot' && (
-              <div className="bot-header">
-                <img 
-                  src="/peruna_tiny.png" 
-                  alt="Peruna mascot" 
-                  className="bot-avatar"
-                />
-                <span className="bot-name">Peruna</span>
-              </div>
-            )}
-            <p>{message.text}</p>
-            
-            {/* Quick reply options */}
-            {message.sender === 'bot' && message.options && (
-              <div className="options-container">
-                {message.options.map((option, i) => (
-                  <button 
-                    key={i}
-                    onClick={() => handleOptionClick(option)}
-                    className="option-button"
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            )}
+  {messages.map((message, index) => (
+    <div key={index} className={`message ${message.sender}`}>
+      <div className="message-bubble">
+        {message.sender === 'bot' && (
+          <div className="bot-header">
+            <div className="bot-avatar">
+              <img src="/peruna_tiny.png" alt="Peruna" />
+            </div>
+            <span className="bot-name">Ask Peruna</span>
           </div>
+        )}
+        
+        <div className="message-text">
+          {message.text}
         </div>
-      ))}
-      
+        
+        {message.sender === 'bot' && message.options && (
+          <div className="options-container">
+            {message.options.map((option, i) => (
+              <button 
+                key={i}
+                onClick={() => handleOptionClick(option)}
+                className="option-button"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  ))}
       {loading && (
         <div className="message bot">
           <div className="message-bubble typing-indicator">
@@ -335,33 +334,31 @@ return (
 
     {/* Input area */}
     <div className="input-container">
-      <div className="input-wrapper">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-          placeholder="Ask Peruna about involvement opportunities..."
-          className="chat-input"
-        />
-        <button
-          onClick={handleSend}
-          className="send-button"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"></line>
-            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-          </svg>
-        </button>
-      </div>
-        
-        {/* Footer */}
-        <div className="footer">
-          <p>© Southern Methodist University • Dallas TX 75205</p>
-          <p>For assistance, contact <a href="https://www.smu.edu/studentaffairs/student-activities" target="_blank" rel="noreferrer">Student Center and Activities</a></p>
-        </div>
-      </div>
+      <input
+        type="text"
+        value={input}
+        onChange={(e) => setInput(e.target.value)}
+        onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+        placeholder="Ask Peruna about involvement opportunities..."
+        className="chat-input"
+      />
+      <button
+        onClick={handleSend}
+        className="send-button"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
     </div>
+        
+      {/* Footer */}
+      <div className="footer">
+        <p>© Southern Methodist University • Dallas TX 75205</p>
+        <p>For assistance, contact <a href="https://www.smu.edu/studentaffairs/student-activities" target="_blank" rel="noreferrer">Student Center and Activities</a></p>
+      </div>
+   </div>
   );
 };
 
