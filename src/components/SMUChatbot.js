@@ -7,7 +7,7 @@ const SMUChatbot = () => {
   // Existing state variables
   const [messages, setMessages] = useState([
     {
-      text: "Hi Mustang! I'm Peruna Bot. I can help you find involvement and leadership opportunities at SMU. What are you interested in?",
+      text: "Hi Mustang! I'm Peruna. I can help you find involvement and leadership opportunities at SMU. What are you interested in?",
       sender: 'bot',
       options: [
         "Student Organizations",
@@ -259,106 +259,106 @@ const getOrganizationsByCategory = async (category) => {
   }
 };
 
-  return (
-    <div className="chatbot-container">
-      {/* Header */}
-      <header className="bg-smu-blue text-white p-4 flex items-center justify-between">
-        <div className="flex items-center">
-          <img 
-            src="/peruna-small.png" 
-            alt="Peruna mascot" 
-            className="h-12 w-12 mr-3 rounded-full bg-white p-1"
-          />
+return (
+  <div className="chatbot-container">
+    {/* Header */}
+    <header className="chatbot-header">
+      
+      <div className="header-content">
+        <div className="header-left">
+          <div className="peruna-logo">
+            <img src="/peruna_small.png" alt="Peruna mascot" className="peruna-image" />
+          </div>
           <div>
-            <h1 className="header-title">SMU Student Involvement</h1>
-            <p className="header-subtitle">Find your place at SMU</p>
+            <h1 className="header-title">Ask Peruna</h1>
+            <p className="header-subtitle">Find your place on the Hilltop</p>
           </div>
         </div>
-        <div className="header-links">
-          <a href="https://www.smu.edu/StudentAffairs" target="_blank" rel="noreferrer">
+        <div className="header-buttons">
+          <a href="https://www.smu.edu/StudentAffairs" target="_blank" rel="noreferrer" className="header-button">
             Student Affairs
           </a>
-          <a href="https://www.smu.edu/360" target="_blank" rel="noreferrer">
+          <a href="https://www.smu.edu/360" target="_blank" rel="noreferrer" className="header-button">
             SMU360
           </a>
         </div>
-      </header>
-
-      {/* Chat messages */}
-      <div className="messages-container">
-        {messages.map((message, index) => (
-          <div key={index} className={`message ${message.sender}`}>
-            <div className="message-bubble">
-              {message.sender === 'bot' && (
-                <div className="flex items-center mb-2">
-                  {/* Replace this div with an image */}
-                  <img 
-                    src="/peruna-tiny.png" 
-                    alt="Peruna mascot" 
-                    className="h-8 w-8 mr-2 rounded-full"
-                  />
-                  <span className="font-bold">Peruna Bot</span>
-                </div>
-              )}
-              <p className="message-text">{message.text}</p>
-              
-              {/* Quick reply options */}
-              {message.sender === 'bot' && message.options && (
-                <div className="options-container">
-                  {message.options.map((option, i) => (
-                    <button 
-                      key={i}
-                      onClick={() => handleOptionClick(option)}
-                      className="option-button"
-                    >
-                      {option}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-        
-        {loading && (
-          <div className="message bot">
-            <div className="message-bubble typing-indicator">
-              <div className="typing-dot"></div>
-              <div className="typing-dot"></div>
-              <div className="typing-dot"></div>
-            </div>
-          </div>
-        )}
-        
-        <div ref={messagesEndRef} />
       </div>
+    </header>
 
-      {/* Input area */}
-      <div className="input-container">
-        <div className="input-wrapper">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Ask about involvement opportunities..."
-            className="chat-input"
-          />
-          <button
-            onClick={handleSend}
-            className="send-button"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
-          </button>
+    {/* Chat container */}
+    <div className="messages-container">
+      {messages.map((message, index) => (
+        <div key={index} className={`message ${message.sender}`}>
+          <div className="message-bubble">
+            {message.sender === 'bot' && (
+              <div className="bot-header">
+                <img 
+                  src="/peruna_tiny.png" 
+                  alt="Peruna mascot" 
+                  className="bot-avatar"
+                />
+                <span className="bot-name">Peruna</span>
+              </div>
+            )}
+            <p>{message.text}</p>
+            
+            {/* Quick reply options */}
+            {message.sender === 'bot' && message.options && (
+              <div className="options-container">
+                {message.options.map((option, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => handleOptionClick(option)}
+                    className="option-button"
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+      ))}
+      
+      {loading && (
+        <div className="message bot">
+          <div className="message-bubble typing-indicator">
+            <div className="typing-dot"></div>
+            <div className="typing-dot"></div>
+            <div className="typing-dot"></div>
+          </div>
+        </div>
+      )}
+      
+      <div ref={messagesEndRef} />
+    </div>
+
+    {/* Input area */}
+    <div className="input-container">
+      <div className="input-wrapper">
+        <input
+          type="text"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+          placeholder="Ask Peruna about involvement opportunities..."
+          className="chat-input"
+        />
+        <button
+          onClick={handleSend}
+          className="send-button"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </div>
         
         {/* Footer */}
         <div className="footer">
           <p>© Southern Methodist University • Dallas TX 75205</p>
-          <p>For assistance, contact the Student Involvement Office</p>
+          <p>For assistance, contact <a href="https://www.smu.edu/studentaffairs/student-activities" target="_blank" rel="noreferrer">Student Center and Activities</a></p>
         </div>
       </div>
     </div>
