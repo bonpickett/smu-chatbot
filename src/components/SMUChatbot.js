@@ -295,7 +295,7 @@ return (
             <div className="bot-avatar">
               <img src="/peruna_tiny.png" alt="Peruna" />
             </div>
-            <span className="bot-name">Ask Peruna</span>
+            <span className="bot-name">Peruna</span>
           </div>
         )}
         
